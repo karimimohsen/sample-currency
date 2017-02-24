@@ -1,0 +1,114 @@
+<template id="currency-template">
+    <style>
+        :host {
+            display: inline-block;
+        }
+    </style>
+    <div>
+    </div>
+</template>
+
+<body>
+    <script>
+        // function onUppercaseChange(ev) {
+        //     console.log(
+        //         `'${ev.target.innerText}' is ${!ev.detail.value ? 'not ' : ''}uppercase`
+        //     );
+        // }
+
+        // (async () => {
+        //     await customElements.whenDefined('my-button');
+        //     const greenEl = document.querySelector('#green');
+        //     greenEl.addEventListener('uppercasechange', onUppercaseChange);
+        // })();
+        function toggleCurrency() {
+            const el = document.querySelector('currency-convertor');
+            if (el.getAttribute('currency') === 'IRR')
+                el.setAttribute('currency', 'USD');
+            else
+                el.setAttribute('currency', 'IRR');
+        }
+    </script>
+    <currency-convertor currency='IRR' value='30' ratio='35000'> </currency-convertor>
+    <button onclick="toggleCurrency()">Change Currency</button>
+
+</body>
+<script>
+                     customElements.define('currency-convertor', class extends HTMLElement {
+                         static get observedAttributes() {
+                             return ['ratio', 'currency', 'value'];
+                         }
+
+                         get ratio() { return this._ratio; }
+                         set ratio(value) {
+                             this._ratio = parseFloat(value);
+                             this._render();
+                         }
+
+                         get value() { return this._value; }
+                         set value(value) {
+                             this._value = parseFloat(value);
+                             this._render();
+                         }
+
+                         get currency() { return this._currency; }
+                         set currency(value) {
+                             if (!value || value === 'IRR')
+                                 this._currency = 'IRR';
+                             else
+                                 this._currency = 'USD';
+                             this._render();
+                         }
+
+                         constructor() {
+                             super();
+                             const template = document.querySelector('#currency-template');
+                             const clone = document.importNode(template.content, true);
+
+                             const shadowRoot = this.attachShadow({ mode: 'open' });
+                             shadowRoot.appendChild(clone);
+                             this._value = 30000;
+                             this._ratio = 35000;
+                             this._currency = 'IRR'; // 'USD';
+                             this._render();
+                         }
+
+                         connectedCallback() {
+                             // this.addEventListener('click', this._onClick.bind(this));
+                         }
+
+                         attributeChangedCallback(name, oldValue, newValue) {
+                             if (name === 'ratio') this.ratio = newValue;
+                             else if (name === 'value') this.value = newValue;
+                             else if (name === 'currency') this.currency = newValue;
+                         }
+
+                         _onClick(ev) {
+                             this.uppercase = !this.uppercase;
+                             const event = new CustomEvent("uppercasechange", {
+                                 detail: { value: this._uppercase }
+                             });
+                             this.dispatchEvent(event);
+
+                             // DO NOT DO THIS IN PRODUCTION
+                             const fn = this.getAttribute('on-uppercasechange');
+                             if (window[fn] instanceof Function) {
+                                 window[fn](event);
+                             }
+                         }
+
+                         _render() {
+                             /* calc */
+                             let result;
+                             if (this._currency === 'USD')
+                                 result = this._value * this._ratio;
+                             else
+                                 result = this._value;
+
+                             /* appecnd to shadow dom */
+                             const el = this.shadowRoot.querySelector("div");
+                             el.innerText = result.toFixed(0).toString();
+                         }
+                     });
+
+</script>
